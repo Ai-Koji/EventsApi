@@ -90,7 +90,12 @@ events.AddRange(new[]
 
 app.MapGet("/events", (DateTime? from, DateTime? to, string? sort) =>
 {
-    var filtered = events.Where(o => o.EventDate >= from && o.EventDate <= to);
+    var filtered = events;
+    if (from != null)
+        filtered = filtered.Where(o => o.EventDate >= from).ToList();
+    if (to != null)
+        filtered = filtered.Where(o => o.EventDate <= to).ToList();
+
     if (!string.IsNullOrWhiteSpace(sort))
     {
         var s = sort.Trim().ToLowerInvariant();
@@ -107,7 +112,7 @@ app.MapGet("/events", (DateTime? from, DateTime? to, string? sort) =>
             return Results.BadRequest("Параметр 'sort' может быть только 'asc' 'desc'.");
         }
     }
-    return Results.Ok(filtered);
+    return Results.Ok(filtered.ToList());
 });
 
 app.MapGet("/events/{id}", (int id) =>
@@ -117,14 +122,19 @@ app.MapGet("/events/{id}", (int id) =>
 });
 app.MapPost("/events", (EventItem item) =>
 {
+    if (item.EventDate < DateTime.UtcNow)
+        return Results.BadRequest();
     item.Id = nextId++;
     events.Add(item);
-    return 200;
+    return Results.Ok();
 });
 app.MapPut("/events/{id}", (int id, EventItem item) =>
 {
-    events[id] = item;
-    return 200;
+    var element = events.Where(o => o.Id == id).FirstOrDefault();
+    if (element != null)
+        element.Title = item.Title;
+
+    return Results.Ok();
 });
 app.MapDelete("/events{id}", (int id) =>
 {
@@ -133,9 +143,9 @@ app.MapDelete("/events{id}", (int id) =>
     if (element != null)
     {
         events.Remove(element);
-        return 200;
+        return Results.Ok();
     }
-    return 404;
+    return Results.BadRequest();
 });
 
 
