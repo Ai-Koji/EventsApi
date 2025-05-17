@@ -88,10 +88,28 @@ events.AddRange(new[]
     }
 });
 
-app.MapGet("/events", () =>
+app.MapGet("/events", (DateTime? from, DateTime? to, string? sort) =>
 {
-    return events;
+    var filtered = events.Where(o => o.EventDate >= from && o.EventDate <= to);
+    if (!string.IsNullOrWhiteSpace(sort))
+    {
+        var s = sort.Trim().ToLowerInvariant();
+        if (s == "asc")
+        {
+            filtered.OrderBy(e => e.EventDate);
+        }
+        else if (s == "desc")
+        {
+            filtered.OrderByDescending(e => e.EventDate);
+        }
+        else
+        {
+            return Results.BadRequest("Параметр 'sort' может быть только 'asc' 'desc'.");
+        }
+    }
+    return Results.Ok(filtered);
 });
+
 app.MapGet("/events/{id}", (int id) =>
 {
     var item = events.Find(o => o.Id == id);
@@ -125,7 +143,8 @@ app.Run();
 
 [JsonSerializable(typeof(List<EventItem>))]
 [JsonSerializable(typeof(EventItem))]
-[JsonSerializable(typeof(ProblemDetails))] // Добавьте эту строку
+[JsonSerializable(typeof(ProblemDetails))]
+[JsonSerializable(typeof(HttpValidationProblemDetails))] // Добавлено для валидации ошибок
 public partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }
