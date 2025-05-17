@@ -1,4 +1,7 @@
+using EventsApi;
 using EventsApi.Models;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,7 +36,21 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var app = builder.Build();
 app.UseCors("AllowFrontend");
+app.UseMiddleware<LoggingMiddleware>();
 
+// Устанавливаем общий обработчик ошибок
+app.UseExceptionHandler("/error");
+// Endpoint для ошибки
+app.Map("/error"
+, (HttpContext context, ILogger<Program> logger) =>
+{
+    var innerException = context.Features.Get<IExceptionHandlerFeature>
+    ()?.Error;
+    logger.LogError(innerException,
+    "Unhandled exception occurred");
+    return Results.Problem(
+    detail: "Внутренняя ошибка сервера. Повторите запрос позже.", statusCode: 500);
+});
 
 // Настройка Swagger
 if (app.Environment.IsDevelopment())
@@ -108,6 +125,7 @@ app.Run();
 
 [JsonSerializable(typeof(List<EventItem>))]
 [JsonSerializable(typeof(EventItem))]
+[JsonSerializable(typeof(ProblemDetails))] // Добавьте эту строку
 public partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }
