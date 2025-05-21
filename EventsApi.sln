@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35913.81 d17.13
+VisualStudioVersion = 17.13.35913.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsApi", "EventsApi\EventsApi.csproj", "{CE06D5E6-56ED-40AD-A947-267E16769630}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationApi", "NotificationApi\NotificationApi.csproj", "{603DD92F-7A2B-4177-A9F0-32C567AC8E72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{CE06D5E6-56ED-40AD-A947-267E16769630}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE06D5E6-56ED-40AD-A947-267E16769630}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE06D5E6-56ED-40AD-A947-267E16769630}.Release|Any CPU.Build.0 = Release|Any CPU
+		{603DD92F-7A2B-4177-A9F0-32C567AC8E72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{603DD92F-7A2B-4177-A9F0-32C567AC8E72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{603DD92F-7A2B-4177-A9F0-32C567AC8E72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{603DD92F-7A2B-4177-A9F0-32C567AC8E72}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
