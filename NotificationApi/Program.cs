@@ -1,6 +1,9 @@
 using NotificationApi.Services;
 using NotificationApi;
 using NotificationApi.Models;
+using EventsApi.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +13,12 @@ builder.Services.AddHttpClient<TelegramNotificationSender>();
 builder.Services.AddSingleton<INotificationSender>(sp =>
 
 sp.GetRequiredService<TelegramNotificationSender>());
+
+// Добавляем конфигурацию JSON сериализации
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -39,3 +48,9 @@ IEnumerable<INotificationSender> senders) =>
 });
 
 app.Run();
+
+
+[JsonSerializable(typeof(NotificationDto))]
+public partial class AppJsonSerializerContext : JsonSerializerContext
+{
+}

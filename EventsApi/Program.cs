@@ -21,6 +21,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+var notifBase = builder.Configuration["NotificationService:BaseUrl"]!;
+builder.Services.AddHttpClient("notification"
+, c =>
+c.BaseAddress = new Uri(notifBase));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -120,13 +125,34 @@ app.MapGet("/events/{id}", (int id) =>
     var item = events.Find(o => o.Id == id);
     return item;
 });
-app.MapPost("/events", (EventItem item) =>
+app.MapPost("/events", async (EventItem item, IHttpClientFactory httpFactory, ILogger<Program> logger) =>
 {
     if (item.EventDate < DateTime.UtcNow)
-        return Results.BadRequest();
+        return Results.BadRequest("Дата события не может быть в прошлом.");
+
     item.Id = nextId++;
     events.Add(item);
-    return Results.Ok();
+
+    // Отправка уведомления в Notification API
+    try
+    {
+        var client = httpFactory.CreateClient("notification");
+        var notification = new NotificationDto
+        {
+            EventId = item.Id,
+            Title = item.Title,
+            EventDate = item.EventDate
+        };
+        
+        var response = await client.PostAsJsonAsync("/api/notifications", notification);
+        response.EnsureSuccessStatusCode();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Ошибка при отправке уведомления для события {EventId}", item.Id);
+    }
+
+    return Results.Ok(item);
 });
 app.MapPut("/events/{id}", (int id, EventItem item) =>
 {
@@ -157,4 +183,18 @@ app.Run();
 [JsonSerializable(typeof(HttpValidationProblemDetails))] // Добавлено для валидации ошибок
 public partial class AppJsonSerializerContext : JsonSerializerContext
 {
+}
+public class NotificationDto
+{
+    public int EventId { get; set; }
+    public string Title { get; set; }
+    public DateTime EventDate { get; set; }
+    // Пустой конструктор для model binding
+    public NotificationDto() { }
+    public NotificationDto(int eventId, string title, DateTime eventDate)
+    {
+        EventId = eventId;
+        Title = title;
+        EventDate = eventDate;
+    }
 }
